@@ -1,15 +1,173 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 @theme {
-  --font-sans: "DM Sans", "Noto Sans SC", ui-sans-serif, system-ui, sans-serif;
-  --color-forest: #173f35;
-  --color-mist: #f5f7f5;
-  --color-sage: #eaf0e6;
+  --font-sans: 'DM Sans', 'Noto Sans SC', ui-sans-serif, system-ui, sans-serif;
+  --color-forest: var(--accent);
+  --color-mist: var(--app-bg);
+  --color-sage: var(--accent-soft);
+}
+
+.app-shell {
+  --app-bg: #f5f7f5;
+  --surface: #ffffff;
+  --surface-soft: #eaf0e6;
+  --text-primary: #1c2b28;
+  --text-secondary: #43554d;
+  --text-muted: #718078;
+  --border: #e1e7e2;
+  --accent: #173f35;
+  --accent-secondary: #315e4e;
+  --accent-contrast: #ffffff;
+  --accent-soft: #eaf0e6;
+  color-scheme: light;
+  --color-forest: var(--accent);
+  --color-mist: var(--app-bg);
+  --color-sage: var(--accent-soft);
+  color: var(--text-primary);
+  background: var(--app-bg);
+}
+
+.app-shell[data-theme='cyber-dark'] {
+  color-scheme: dark; /* 👈 关键：让浏览器的滚动条和原生组件同步变深色 */
+  --app-bg: #0b0f19; /* 深黑蓝背景 */
+  --surface: #151c2c; /* 略浅的卡片表面色 */
+  --surface-soft: #1f293d; /* 悬浮/选中状态的平滑深色 */
+  --text-primary: #f3f4f6; /* 近纯白的亮灰文字 */
+  --text-secondary: #9ca3af; /* 次级灰文字 */
+  --text-muted: #6b7280; /* 禁用/小字号暗灰 */
+  --border: #24324d; /* 科技感深蓝精细边框 */
+  --accent: #6366f1; /* 核心强调：电光紫/靛蓝 */
+  --accent-secondary: #38bdf8; /* 次级强调：亮青色 */
+  --accent-contrast: #ffffff; /* 强调色上的反白文字 */
+  --accent-soft: rgba(99, 102, 241, 0.15); /* 紫色微光半透明柔和色 */
+}
+
+.app-shell[data-theme='forest-muted'] {
+  --app-bg: #f4efe6; /* 燕麦色/环保纸感背景 */
+  --surface: #faf7f2; /* 柔白表面 */
+  --surface-soft: #e3dac9; /* 浅泥土/木质过渡色 */
+  --text-primary: #2c3e35; /* 深墨绿核心文字 */
+  --text-secondary: #4a5d4e; /* 苔藓绿次级文字 */
+  --text-muted: #7c8e82; /* 浅绿灰暗字 */
+  --border: #dfd5c3; /* 温暖的大地色系边框 */
+  --accent: #4a5d4e; /* 核心强调：深苔藓绿 */
+  --accent-secondary: #c88a58; /* 次级强调：焦糖/琥珀褐 */
+  --accent-contrast: #ffffff; /* 强调色上的白色文字 */
+  --accent-soft: #e9ece9; /* 淡淡的绿意过渡色 */
+}
+
+.app-shell[data-theme='vibrant-pop'] {
+  --app-bg: #f9fafb; /* 极其干净的极简微灰背景 */
+  --surface: #ffffff; /* 纯白表面 */
+  --surface-soft: #f3f4f6; /* 浅浅的浅灰过渡 */
+  --text-primary: #111827; /* 现代高对比度深灰黑字 */
+  --text-secondary: #4b5563; /* 中灰次级字 */
+  --text-muted: #9ca3af; /* 浅灰辅助字 */
+  --border: #e5e7eb; /* 干净无干扰的明灰色边框 */
+  --accent: #ff5a36; /* 核心强调：极具活力的橙红 */
+  --accent-secondary: #8b5cf6; /* 次级强调：潮流柔和紫 */
+  --accent-contrast: #ffffff; /* 橙红/紫色上的纯白文字 */
+  --accent-soft: #ffece8; /* 浅橙红色的柔和背景色 */
+}
+
+.app-shell[data-theme='nordic-slate'] {
+  --app-bg: #f5f6f6; /* 冷调浅灰背景 */
+  --surface: #ffffff; /* 纯白卡片表面 */
+  --surface-soft: #eaecee; /* 略带冷感的过渡色 */
+  --text-primary: #1a202c; /* 深沉的冷黑字 */
+  --text-secondary: #4a5568; /* 石板灰次级字 */
+  --text-muted: #718096; /* 烟灰辅助字 */
+  --border: #e2e8f0; /* 精致的冷灰边框 */
+  --accent: #3e517a; /* 核心强调：低饱和度静谧蓝 */
+  --accent-secondary: #d08a72; /* 次级强调：高级暖陶土色 */
+  --accent-contrast: #ffffff; /* 强调色上的反白文字 */
+  --accent-soft: #ecf0f4; /* 静谧蓝的极淡柔和色 */
 }
 
 @layer base {
-  * { box-sizing: border-box; }
-  body { @apply m-0 min-w-80 font-sans; }
-  button, input, textarea { font: inherit; }
-  button { @apply cursor-pointer; }
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    @apply m-0 min-w-80 font-sans;
+    background: var(--app-bg, #f5f7f5);
+    color: var(--text-primary, #1c2b28);
+  }
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+.toast {
+  position: fixed;
+  z-index: 100;
+  top: 12px;
+  left: 50%;
+  display: flex;
+  width: min(440px, calc(100% - 24px));
+  align-items: center;
+  gap: 10px;
+  transform: translateX(-50%);
+  border: 1px solid #d9dee5;
+  border-radius: 12px;
+  padding: 11px 12px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 14%);
+  background: #ffffff;
+  color: #263244;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.toast-success {
+  border-color: #b9dfc3;
+  background: #f0f9f2;
+  color: #263244;
+}
+.toast-error {
+  border-color: #f0c2c6;
+  background: #fff2f2;
+  color: #263244;
+}
+.toast-info {
+  border-color: #c6d9ed;
+  background: #f1f7fd;
+  color: #263244;
+}
+.toast-icon {
+  display: grid;
+  width: 23px;
+  height: 23px;
+  flex: 0 0 23px;
+  place-items: center;
+  border-radius: 50%;
+  background: #287545;
+  color: #ffffff;
+  font-weight: 800;
+}
+.toast-error .toast-icon {
+  background: #c62828;
+  color: #ffffff;
+}
+.toast-info .toast-icon {
+  background: #3973ac;
+  color: #ffffff;
+}
+.toast-close {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  place-items: center;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #52606d;
+  font-size: 18px;
+}
+.toast-close:hover {
+  background: #eef1f4;
 }

@@ -1,7 +1,18 @@
 import type { ProductDraft } from './types';
+import { defaultTheme, isThemeId, type ThemeId } from './theme';
 
 const STORAGE_KEY = 'listingLoomDrafts';
 const PRICING_KEY = 'listingLoomPricing';
+const THEME_KEY = 'listingLoomTheme';
+
+export async function getTheme(): Promise<ThemeId> {
+  const stored = (await chrome.storage.local.get(THEME_KEY))[THEME_KEY];
+  return isThemeId(stored) ? stored : defaultTheme;
+}
+
+export async function saveTheme(theme: ThemeId): Promise<void> {
+  await chrome.storage.local.set({ [THEME_KEY]: theme });
+}
 
 export interface PricingSettings {
   commission: number;
