@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Listing Loom — 商品织录",
+  "version": "0.1.0",
+  "description": "采集商品页面信息，整理为可交给 AI 生成商品文案的本地草稿。",
+  "permissions": ["activeTab", "scripting", "storage", "sidePanel"],
+  "background": { "service_worker": "src/background.ts", "type": "module" },
+  "action": { "default_title": "打开 Listing Loom" },
+  "side_panel": { "default_path": "index.html" }
+}
