@@ -1,2 +1,7 @@
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: false
+
+overrides:
+  baseline-browser-mapping: 2.11.34
+  electron-to-chromium: 1.5.472
+  semver@6: 6.3.1

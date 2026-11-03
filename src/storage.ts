@@ -1,6 +1,29 @@
 import type { ProductDraft } from './types';
 
 const STORAGE_KEY = 'listingLoomDrafts';
+const PRICING_KEY = 'listingLoomPricing';
+
+export interface PricingSettings {
+  commission: number;
+  damage: number;
+  advertising: number;
+  profit: number;
+}
+
+export const defaultPricing: PricingSettings = {
+  commission: 15,
+  damage: 8,
+  advertising: 5,
+  profit: 5,
+};
+
+export async function getPricing(): Promise<PricingSettings> {
+  return { ...defaultPricing, ...((await chrome.storage.local.get(PRICING_KEY))[PRICING_KEY] as Partial<PricingSettings> | undefined) };
+}
+
+export async function savePricing(pricing: PricingSettings): Promise<void> {
+  await chrome.storage.local.set({ [PRICING_KEY]: pricing });
+}
 
 export async function getDrafts(): Promise<ProductDraft[]> {
   return ((await chrome.storage.local.get(STORAGE_KEY))[STORAGE_KEY] as ProductDraft[] | undefined) ?? [];

@@ -1,34 +1,69 @@
-export interface ProductDraft {
-  id: string;
-  title: string;
+export interface ProductFields {
   itemCode: string;
-  merchant: string;
-  category: string;
-  currentPrice: string;
+  productName: string;
   originalPrice: string;
-  currency: string;
+  salePrice: string;
   discount: string;
-  features: string;
-  description: string;
-  material: string;
-  size: string;
-  color: string;
-  sourceUrl: string;
+  available: string;
+  fulfillment: string;
+  productFeatures: string[];
+  mainColor: string;
+  mainMaterial: string;
+  bedFrameMaterial: string;
+  assembledLength: string;
+  assembledWidth: string;
+  assembledHeight: string;
+  productWeight: string;
+}
+
+export interface ProductDraft extends ProductFields {
+  id: string;
   createdAt: string;
   updatedAt: string;
 }
 
-export type ProductFields = Omit<ProductDraft, 'id' | 'createdAt' | 'updatedAt'>;
+export interface ProductExtractionResult {
+  product: ProductFields;
+  warnings: string[];
+}
+
+export interface CaptureFilters {
+  minAvailable: number;
+  minDiscount: number;
+}
 
 export const emptyProduct = (): ProductFields => ({
-  title: '', itemCode: '', merchant: '', category: '', currentPrice: '',
-  originalPrice: '', currency: '', discount: '', features: '', description: '',
-  material: '', size: '', color: '', sourceUrl: '',
+  itemCode: '',
+  productName: '',
+  originalPrice: '',
+  salePrice: '',
+  discount: '',
+  available: '',
+  fulfillment: '',
+  productFeatures: [],
+  mainColor: '',
+  mainMaterial: '',
+  bedFrameMaterial: '',
+  assembledLength: '',
+  assembledWidth: '',
+  assembledHeight: '',
+  productWeight: '',
 });
 
 export const fieldLabels: Record<keyof ProductFields, string> = {
-  title: '页面标题', itemCode: 'Item Code', merchant: '商家', category: '类目',
-  currentPrice: '当前价', originalPrice: '原价', currency: '币种', discount: '折扣',
-  features: 'Product Features', description: '描述', material: '材质', size: '尺寸',
-  color: '颜色', sourceUrl: '商品页面链接',
+  itemCode: 'Item Code',
+  productName: 'Product Name',
+  originalPrice: 'Original Price',
+  salePrice: 'Sale Price',
+  discount: 'Discount',
+  available: 'Available',
+  fulfillment: 'Fulfillment',
+  productFeatures: 'Product Features',
+  mainColor: 'Main Color',
+  mainMaterial: 'Main Material',
+  bedFrameMaterial: 'Bed Frame Material',
+  assembledLength: 'Assembled Length (in.)',
+  assembledWidth: 'Assembled Width (in.)',
+  assembledHeight: 'Assembled Height (in.)',
+  productWeight: 'Product Weight (lbs.)',
 };

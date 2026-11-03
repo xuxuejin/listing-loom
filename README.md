@@ -1,6 +1,6 @@
 # Listing Loom · 商品织录
 
-Listing Loom 是一个基于 **TypeScript 6、Vite 7、Tailwind CSS 4 和 CRXJS** 构建的 Chrome / Edge Manifest V3 浏览器扩展。商品采集界面运行在浏览器侧边栏中；开发时通过 Vite 热更新预览，不需要把它作为普通网页使用。
+Listing Loom 是一个基于 **React、TypeScript 6、Vite 7、Tailwind CSS 4 和 CRXJS** 构建的 Chrome / Edge Manifest V3 浏览器扩展。前端以 React 函数组件拆分界面和交互，以 Tailwind 工具类编写样式；开发时通过 Vite 热更新预览，不需要把它作为普通网页使用。
 
 ## 环境要求
 
@@ -27,6 +27,8 @@ pnpm dev
 
 开发预览应从扩展图标打开。Vite 使用 `127.0.0.1:5173` 提供热更新资源，开发构建输出在 `dev-dist/`；不需要把 localhost 页面作为产品界面。开发构建会额外声明本机开发服务器的 host permission，生产构建不会带上该权限。
 
+侧边栏保持打开时，点击“标记页面节点”会在点击当下查询浏览器当前选中的标签页，再通过 `scripting.executeScript()` 读取该页 DOM。扩展声明了 HTTP/HTTPS 网站访问权限，以支持切换标签后从侧边栏采集；扩展只在用户点击按钮时读取当前页。Chrome 内部页、Chrome 网上应用店和新标签页仍不可注入。
+
 ## 生产构建
 
 ```bash
@@ -37,12 +39,13 @@ pnpm build
 
 ## 采集字段
 
-- 基本信息：标题、Item Code、商家、类目
-- 价格信息：当前价、原价、币种、折扣
-- 商品内容：Product Features、描述、材质、尺寸、颜色
-- 来源信息：商品页面链接
+- Item Code、Product Name
+- Original Price（原价）、Sale Price（促销价）、Discount（折扣）
+- Available、Fulfillment
+- Product Features、Main Color、Main Material、Bed Frame Material
+- Assembled Length (in.)、Assembled Width (in.)、Assembled Height (in.)、Product Weight (lbs.)
 
-不采集商品图片。采集器使用页面 DOM 和文本规则提取信息，页面结构不同可能导致部分字段为空；保存前请人工核对。后续可以按 gigab2b 页面结构补充专用提取规则。
+不采集商品图片。采集器按 gigab2b 商品页标签和 DOM 结构提取信息：普通字段读取标签的下一个兄弟元素，Available 读取前一个兄弟元素；价格、Product Features 和 Fulfillment 使用专用规则。页面结构变化可能导致部分字段为空；保存前请人工核对。
 
 ## 草稿存储与 AI
 
@@ -53,15 +56,22 @@ pnpm build
 ```text
 listing-loom/
 ├── manifest.json        # MV3 权限、后台脚本与侧边栏入口
+├── public/icons/         # 128×128 SVG 源图与扩展所需 PNG 尺寸
 ├── index.html           # 侧边栏 HTML 入口
 ├── vite.config.ts       # Vite、CRXJS、Tailwind 和开发/生产输出配置
 ├── pnpm-lock.yaml       # pnpm 依赖锁定文件
 ├── src/
-│   ├── background.ts    # 扩展 service worker；设置点击图标打开侧边栏
-│   ├── main.ts          # 侧边栏界面与交互
+│   ├── main.tsx         # React 应用入口
+│   ├── App.tsx          # 应用状态、采集和草稿操作
+│   ├── components/      # 侧边栏可复用 UI 组件
+│   │   ├── TopBar.tsx
+│   │   ├── ProductForm.tsx
+│   │   ├── ProductField.tsx
+│   │   └── DraftLibrary.tsx
+│   ├── background.ts    # 扩展 service worker；配置点击工具栏图标打开侧边栏
 │   ├── scraper.ts       # 在当前标签页提取商品字段
 │   ├── storage.ts       # chrome.storage.local 草稿读写
-│   ├── style.css        # Tailwind CSS 入口与主题
+│   ├── style.css        # Tailwind CSS 入口、主题和全局基础样式
 │   └── types.ts         # 商品草稿数据类型
 ├── dev-dist/            # 开发服务器生成，加载到浏览器用于热更新
 └── dist/                # 生产构建输出
