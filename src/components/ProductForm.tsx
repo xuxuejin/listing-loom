@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import type { CaptureFilters, ProductFields } from '../types';
 import { fieldLabels } from '../types';
 import type { PricingSettings } from '../storage';
+import { DisclosureIcon } from './icons';
 
 interface ProductFormProps {
   product: ProductFields;
@@ -45,7 +47,9 @@ function featurePreview(value: string) {
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
     <div className="border-b border-[var(--border)] py-3 last:border-b-0">
-      <dt className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">{label}</dt>
+      <dt className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">
+        {label}
+      </dt>
       <dd className="m-0 whitespace-pre-wrap break-words text-[12px] leading-relaxed text-[var(--text-primary)]">
         {value || <span className="text-[var(--text-muted)]">未采集到</span>}
       </dd>
@@ -65,6 +69,8 @@ export function ProductForm({
   onSave,
   busy,
 }: ProductFormProps) {
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [pricingOpen, setPricingOpen] = useState(false);
   return (
     <section>
       <div className="flex items-end justify-between">
@@ -77,40 +83,126 @@ export function ProductForm({
           </h1>
         </div>
       </div>
-      <details className="mb-3.5">
-        <summary className="cursor-pointer py-1 text-[11px] font-semibold text-[var(--text-secondary)]">过滤条件</summary>
-        <div className="mt-3 flex flex-col gap-3">
-          <label className="flex items-center justify-between gap-3 text-[10px] font-medium text-[var(--text-muted)]">
-            <span>库存需大于</span>
-            <span className="flex items-center gap-2"><input type="number" min="0" value={filters.minAvailable} onChange={event => onFilterChange({ ...filters, minAvailable: Math.max(0, Number(event.target.value)) })} className="w-24 rounded-md border border-[var(--border)] px-2 py-1.5 text-right text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" /><span>件</span></span>
-          </label>
-          <label className="flex items-center justify-between gap-3 text-[10px] font-medium text-[var(--text-muted)]">
-            <span>最低折扣</span>
-            <span className="flex items-center gap-2"><input type="number" min="0" max="100" step="0.1" value={filters.minDiscount} onChange={event => onFilterChange({ ...filters, minDiscount: Math.min(100, Math.max(0, Number(event.target.value))) })} className="w-24 rounded-md border border-[var(--border)] px-2 py-1.5 text-right text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" /><span>%</span></span>
-          </label>
-        </div>
-      </details>
-      <details className="mb-4">
-        <summary className="cursor-pointer py-1 text-[11px] font-semibold text-[var(--text-secondary)]">定价参数</summary>
-        <div className="mt-2 flex flex-col gap-3">
-          <p className="m-0 text-[10px] leading-relaxed text-[var(--text-muted)]">挂牌价根据采购价、运费和以下比例实时计算。</p>
-          {([
-            ['commission', '佣金'],
-            ['damage', '货损'],
-            ['advertising', '广告'],
-            ['profit', '利润'],
-          ] as const).map(([key, label]) => (
-            <label key={key} className="flex items-center justify-between gap-3 text-[10px] font-medium text-[var(--text-muted)]">
-              <span>{label}</span>
-              <span className="flex items-center gap-2"><input type="number" min="0" max="99" step="0.1" value={pricing[key]} onChange={event => onPricingChange({ ...pricing, [key]: Math.max(0, Number(event.target.value)) })} className="w-24 rounded-md border border-[var(--border)] px-2 py-1.5 text-right text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]" /><span>%</span></span>
+      <div className="mb-3.5">
+        <button
+          type="button"
+          aria-expanded={filtersOpen}
+          aria-controls="capture-filters"
+          onClick={() => setFiltersOpen((open) => !open)}
+          className="inline-flex w-fit items-center gap-1.5 border-0 bg-transparent p-0 py-1 text-[11px] font-semibold text-[var(--text-secondary)] hover:text-[var(--accent)]"
+        >
+          <DisclosureTriangle open={filtersOpen} />
+          过滤条件
+        </button>
+        {filtersOpen && (
+          <div id="capture-filters" className="mt-3 flex flex-col gap-3">
+            <label className="flex items-center justify-between gap-3 text-[10px] font-medium text-[var(--text-muted)]">
+              <span>库存需大于</span>
+              <span className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  value={filters.minAvailable}
+                  onChange={(event) =>
+                    onFilterChange({
+                      ...filters,
+                      minAvailable: Math.max(0, Number(event.target.value)),
+                    })
+                  }
+                  className="w-24 rounded-md border border-[var(--border)] px-2 py-1.5 text-right text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                />
+                <span>件</span>
+              </span>
             </label>
-          ))}
-          <div className="flex justify-between border-t border-[var(--border)] pt-2 text-[10px] text-[var(--text-muted)]">
-            <span>合计定价比例</span>
-            <strong className="text-[var(--text-primary)]">{(pricing.commission + pricing.damage + pricing.advertising + pricing.profit).toFixed(1)}%</strong>
+            <label className="flex items-center justify-between gap-3 text-[10px] font-medium text-[var(--text-muted)]">
+              <span>最低折扣</span>
+              <span className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={filters.minDiscount}
+                  onChange={(event) =>
+                    onFilterChange({
+                      ...filters,
+                      minDiscount: Math.min(
+                        100,
+                        Math.max(0, Number(event.target.value)),
+                      ),
+                    })
+                  }
+                  className="w-24 rounded-md border border-[var(--border)] px-2 py-1.5 text-right text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                />
+                <span>%</span>
+              </span>
+            </label>
           </div>
-        </div>
-      </details>
+        )}
+      </div>
+      <div className="mb-4">
+        <button
+          type="button"
+          aria-expanded={pricingOpen}
+          aria-controls="pricing-settings"
+          onClick={() => setPricingOpen((open) => !open)}
+          className="inline-flex w-fit items-center gap-1.5 border-0 bg-transparent p-0 py-1 text-[11px] font-semibold text-[var(--text-secondary)] hover:text-[var(--accent)]"
+        >
+          <DisclosureTriangle open={pricingOpen} />
+          定价参数
+        </button>
+        {pricingOpen && (
+          <div id="pricing-settings" className="mt-2 flex flex-col gap-3">
+            <p className="m-0 text-[10px] leading-relaxed text-[var(--text-muted)]">
+              挂牌价根据采购价、运费和以下比例实时计算。
+            </p>
+            {(
+              [
+                ['commission', '佣金'],
+                ['damage', '货损'],
+                ['advertising', '广告'],
+                ['profit', '利润'],
+              ] as const
+            ).map(([key, label]) => (
+              <label
+                key={key}
+                className="flex items-center justify-between gap-3 text-[10px] font-medium text-[var(--text-muted)]"
+              >
+                <span>{label}</span>
+                <span className="flex items-center gap-2">
+                  <input
+                    type="number"
+                    min="0"
+                    max="99"
+                    step="0.1"
+                    value={pricing[key]}
+                    onChange={(event) =>
+                      onPricingChange({
+                        ...pricing,
+                        [key]: Math.max(0, Number(event.target.value)),
+                      })
+                    }
+                    className="w-24 rounded-md border border-[var(--border)] px-2 py-1.5 text-right text-xs text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+                  />
+                  <span>%</span>
+                </span>
+              </label>
+            ))}
+            <div className="flex justify-between border-t border-[var(--border)] pt-2 text-[10px] text-[var(--text-muted)]">
+              <span>合计定价比例</span>
+              <strong className="text-[var(--text-primary)]">
+                {(
+                  pricing.commission +
+                  pricing.damage +
+                  pricing.advertising +
+                  pricing.profit
+                ).toFixed(1)}
+                %
+              </strong>
+            </div>
+          </div>
+        )}
+      </div>
       <div className="mb-[17px] mt-4 flex gap-2">
         <button
           onClick={onCapture}
@@ -142,16 +234,17 @@ export function ProductForm({
                   ))}
                 </ol>
               ) : (
-                <dd className="m-0 text-[12px] text-[var(--text-muted)]">未采集到</dd>
+                <dd className="m-0 text-[12px] text-[var(--text-muted)]">
+                  未采集到
+                </dd>
               )}
             </div>
           ) : (
             <div key={key}>
-            <ReadOnlyField
-              label={fieldLabels[key]}
-              value={product[key]}
-            />
-            {key === 'salePrice' && <ReadOnlyField label="Listing Price" value={listingPrice} />}
+              <ReadOnlyField label={fieldLabels[key]} value={product[key]} />
+              {key === 'salePrice' && (
+                <ReadOnlyField label="Listing Price" value={listingPrice} />
+              )}
             </div>
           ),
         )}
@@ -167,5 +260,11 @@ export function ProductForm({
         </button>
       </div>
     </section>
+  );
+}
+
+function DisclosureTriangle({ open }: { open: boolean }) {
+  return (
+    <DisclosureIcon open={open} className="size-2.5 transition-transform" />
   );
 }

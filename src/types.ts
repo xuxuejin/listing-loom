@@ -20,6 +20,14 @@ export interface ProductDraft extends ProductFields {
   id: string;
   createdAt: string;
   updatedAt: string;
+  aiResult?: AIListingContent;
+}
+
+export interface AIListingContent {
+  productTitle: string;
+  bullets: string[];
+  productDescription: string;
+  searchKeywords: string[];
 }
 
 export interface ProductExtractionResult {

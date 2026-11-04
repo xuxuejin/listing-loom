@@ -49,7 +49,13 @@ pnpm build
 
 ## 草稿存储与 AI
 
-草稿保存在扩展自己的 `chrome.storage.local` 中，不上传到业务服务器。侧边栏可以继续编辑和删除草稿、导出全部草稿 JSON，或复制商品信息作为 AI 输入。卸载扩展或清除扩展数据前，请先导出备份。
+商品草稿和 AI 优化结果保存在扩展自己的 `chrome.storage.local` 中，不上传到 Listing Loom 服务器。在暂存页左侧选择模型，云端模型会显示对应的 API Key 输入框；右侧点击“优化”后处理全部暂存商品：
+
+- **Gemini API**：可选择 Gemini 3.8 Flash、3.6 Flash 或 3.5 Flash-Lite。输入 Google Gemini API Key 后保存在本机扩展存储；商品名称、Features 和已采集规格会发送给 Google。请求使用 Gemini Interactions API，并关闭服务端交互存储。
+- **DeepSeek API**：可选择 DeepSeek V4.1 Flash 或 V4 Pro，并填写 DeepSeek API Key。DeepSeek-R1 和 V3/V3.2 已作为停用选项标出：官方旧模型 API 已退役，不能继续通过旧模型名调用。
+- **Gemini Nano**：无需 Key，通过 Chrome Prompt API 在本机生成。需要支持 Prompt API 的 Chrome 版本、设备和可用模型；不满足时扩展会提示原因。
+
+生成结果包括 Product Title、5–8 条 About This Item、Product Description 和 Search Keywords，可从对应草稿的“优化结果”按钮查看。AI 文案是待审核草稿，请发布前人工核对商品事实、拼写及平台政策。卸载扩展或清除扩展数据前，请先导出备份。
 
 ## 工程结构
 
@@ -63,6 +69,7 @@ listing-loom/
 ├── src/
 │   ├── main.tsx         # React 应用入口
 │   ├── App.tsx          # 应用状态、采集和草稿操作
+│   ├── ai.ts            # Gemini API 与 Chrome 内置 AI 调用和结果解析
 │   ├── components/      # 侧边栏可复用 UI 组件
 │   │   ├── TopBar.tsx
 │   │   ├── ProductForm.tsx
