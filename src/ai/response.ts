@@ -1,6 +1,11 @@
-import type { AIListingContent } from '../types';
+import type { AIListingContent, CustomProductField } from '../types';
+import { completeCustomFieldAnswers } from './customFields';
+import { sanitizeListingText } from './sanitize';
 
-export function parseListing(text: string): AIListingContent {
+export function parseListing(
+  text: string,
+  configuredFields: CustomProductField[] = [],
+): AIListingContent {
   const clean = text
     .trim()
     .replace(/^```(?:json)?\s*/i, '')
@@ -22,24 +27,47 @@ export function parseListing(text: string): AIListingContent {
   const value = raw as Record<string, unknown>;
   const result: AIListingContent = {
     productTitle:
-      typeof value.productTitle === 'string' ? value.productTitle.trim() : '',
+      typeof value.productTitle === 'string'
+        ? sanitizeListingText(value.productTitle)
+        : '',
     bullets: Array.isArray(value.bullets)
       ? value.bullets
           .filter((item): item is string => typeof item === 'string')
-          .map((item) => item.trim())
+          .map(sanitizeListingText)
           .filter(Boolean)
       : [],
     productDescription:
       typeof value.productDescription === 'string'
-        ? value.productDescription.trim()
+        ? sanitizeListingText(value.productDescription)
         : '',
     searchKeywords: Array.isArray(value.searchKeywords)
       ? value.searchKeywords
           .filter((item): item is string => typeof item === 'string')
-          .map((item) => item.trim())
+          .map(sanitizeListingText)
           .filter(Boolean)
       : [],
+    customFields: Array.isArray(value.customFields)
+      ? value.customFields
+          .filter(
+            (item): item is Record<string, unknown> =>
+              Boolean(item) && typeof item === 'object',
+          )
+          .filter(
+            (item) =>
+              typeof item.fieldName === 'string' &&
+              typeof item.value === 'string',
+          )
+          .map((item) => ({
+            fieldName: sanitizeListingText(item.fieldName as string),
+            value: sanitizeListingText(item.value as string),
+          }))
+      : [],
   };
+
+  result.customFields = completeCustomFieldAnswers(
+    configuredFields,
+    result.customFields ?? [],
+  );
 
   if (
     !result.productTitle ||

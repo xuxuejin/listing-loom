@@ -80,6 +80,18 @@ export function AiResultDialog({
               )}
             </div>
           </ResultSection>
+          {!!result.customFields?.length && (
+            <ResultSection title="Custom Fields">
+              <dl className="m-0 space-y-2">
+                {result.customFields.map((field, index) => (
+                  <div key={`${field.fieldName}-${index}`}>
+                    <dt className="font-semibold">{field.fieldName}</dt>
+                    <dd className="m-0 mt-0.5">{field.value || '未返回有效预设值'}</dd>
+                  </div>
+                ))}
+              </dl>
+            </ResultSection>
+          )}
         </div>
         <footer className="flex justify-end border-t border-[#e5e7eb] px-5 py-3">
           <button

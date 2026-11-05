@@ -3,17 +3,30 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { crx } from '@crxjs/vite-plugin';
 import manifest from './manifest.json';
+import path from 'path';
 
-export default defineConfig(env => ({
+export default defineConfig((env) => ({
   plugins: [
     tailwindcss(),
     react(),
     crx({
-      manifest: env => env.command === 'serve'
-        ? { ...manifest, host_permissions: [...(manifest.host_permissions || []), 'http://localhost/*'] }
-        : manifest,
+      manifest: (env) =>
+        env.command === 'serve'
+          ? {
+              ...manifest,
+              host_permissions: [
+                ...(manifest.host_permissions || []),
+                'http://localhost/*',
+              ],
+            }
+          : manifest,
     }),
   ],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
   build: {
     outDir: env.command === 'serve' ? 'dev-dist' : 'dist',
     emptyOutDir: true,

@@ -30,7 +30,7 @@ export async function optimizeWithGeminiSdk(
       });
       if (!response.text?.trim())
         throw new Error('Gemini SDK 没有返回可用的文案。');
-      return parseListing(response.text);
+      return parseListing(response.text, draft.customFields);
     } catch (error) {
       lastError = error;
       const status = getHttpStatus(error);

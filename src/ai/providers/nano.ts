@@ -42,7 +42,7 @@ export async function optimizeWithNano(
   let session: LanguageModelSession | undefined;
   try {
     session = await api.create(options);
-    return parseListing(await session.prompt(buildPrompt(draft)));
+    return parseListing(await session.prompt(buildPrompt(draft)), draft.customFields);
   } catch (error) {
     if (error instanceof Error && error.message) throw error;
     throw new Error('Gemini Nano 生成失败；模型可能仍在下载，请稍后重试。');

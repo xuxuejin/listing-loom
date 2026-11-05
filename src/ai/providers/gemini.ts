@@ -63,7 +63,7 @@ export async function optimizeWithGemini(
     };
     const text = extractGeminiText(data);
     if (!text) throw new Error('Gemini 没有返回可用的文案。');
-    return parseListing(text);
+    return parseListing(text, draft.customFields);
   }
 
   const summary =

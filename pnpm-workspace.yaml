@@ -1,5 +1,7 @@
 allowBuilds:
+  '@google/genai': true
   esbuild: false
+  protobufjs: true
 
 overrides:
   baseline-browser-mapping: 2.11.34

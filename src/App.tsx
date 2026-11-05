@@ -4,19 +4,28 @@ import { ConfirmDialog } from './components/ConfirmDialog';
 import { ProductForm } from './components/ProductForm';
 import { TopBar } from './components/TopBar';
 import { Toast, type ToastKind, type ToastMessage } from './components/Toast';
-import { optimizeDraft, type AIModel, type CloudAIProvider } from './ai';
+import {
+  getAIProvider,
+  optimizeDraft,
+  type AIModel,
+  type CloudAIProvider,
+} from './ai';
 import { scrapeActiveTab } from './gigaScraper';
 import {
   defaultPricing,
   deleteDraft,
   getAIProviderKeys,
+  getBrandName,
   getDrafts,
   getPricing,
   getTheme,
+  getTemplateCustomFields,
   saveAIProviderKey,
+  saveBrandName,
   saveDraft,
   savePricing,
   saveTheme,
+  saveTemplateCustomFields,
   type PricingSettings,
 } from './storage';
 import {
@@ -25,37 +34,102 @@ import {
   type ProductDraft,
   type ProductFields,
 } from './types';
+import type { CustomProductField } from './types';
 import { defaultTheme, type ThemeId } from './theme';
+import { loadExcelTemplate, getTemplateSummary } from './excel/loadTemplate';
+import { downloadWorkbook } from './excel/downloadWorkbook';
+import type { LoadedExcelTemplate } from './excel/types';
 
 type View = 'capture' | 'library';
 const hasProductData = (value: ProductFields) =>
   Object.entries(value).some(([key, field]) =>
     key === 'productFeatures'
       ? Array.isArray(field) && field.length > 0
-      : typeof field === 'string' && field.trim().length > 0,
+      : key === 'attributes'
+        ? Boolean(
+            field && typeof field === 'object' && Object.keys(field).length,
+          )
+        : typeof field === 'string' && field.trim().length > 0,
   );
 const withoutMetadata = (draft: ProductDraft): ProductFields => {
-  const legacyDraft = draft as ProductDraft & { currency?: string };
+  const legacyDraft = draft as ProductDraft & {
+    currency?: string;
+    mainColor?: string;
+    mainMaterial?: string;
+    bedFrameMaterial?: string;
+    assembledLength?: string;
+    assembledWidth?: string;
+    assembledHeight?: string;
+    productWeight?: string;
+  };
   const {
     id: _id,
     createdAt: _createdAt,
     updatedAt: _updatedAt,
     aiResult: _aiResult,
+    customFields: _customFields,
     currency: _legacyCurrency,
+    mainColor: _mainColor,
+    mainMaterial: _mainMaterial,
+    bedFrameMaterial: _bedFrameMaterial,
+    assembledLength: _assembledLength,
+    assembledWidth: _assembledWidth,
+    assembledHeight: _assembledHeight,
+    productWeight: _productWeight,
     ...product
   } = legacyDraft;
-  return product;
+  const attributes = Object.fromEntries(
+    Object.entries(product.attributes ?? {}).filter(
+      ([label]) =>
+        !['item code', 'product name'].includes(
+          label
+            .replace(/[:：]\s*$/, '')
+            .trim()
+            .toLocaleLowerCase(),
+        ),
+    ),
+  );
+  const addLegacyAttribute = (label: string, value?: string) => {
+    const exists = Object.keys(attributes).some(
+      (name) =>
+        name.replace(/\s+/g, ' ').trim().toLocaleLowerCase() ===
+        label.toLocaleLowerCase(),
+    );
+    if (value && !exists) attributes[label] = value;
+  };
+  addLegacyAttribute('Main Color', legacyDraft.mainColor);
+  addLegacyAttribute('Main Material', legacyDraft.mainMaterial);
+  addLegacyAttribute('Bed Frame Material', legacyDraft.bedFrameMaterial);
+  addLegacyAttribute('Assembled Length (in.)', legacyDraft.assembledLength);
+  addLegacyAttribute('Assembled Width (in.)', legacyDraft.assembledWidth);
+  addLegacyAttribute('Assembled Height (in.)', legacyDraft.assembledHeight);
+  addLegacyAttribute('Product Weight (lbs.)', legacyDraft.productWeight);
+  return {
+    ...product,
+    brandName: product.brandName ?? '',
+    attributes,
+  };
 };
 
 export default function App() {
   const [product, setProduct] = useState<ProductFields>(emptyProduct);
+  const [brandName, setBrandName] = useState('');
   const [activeId, setActiveId] = useState<string | null>(null);
   const [hasUnsavedProduct, setHasUnsavedProduct] = useState(false);
   const [view, setView] = useState<View>('capture');
   const [drafts, setDrafts] = useState<ProductDraft[]>([]);
+  const [aiCustomFields, setAiCustomFields] = useState<CustomProductField[]>(
+    [],
+  );
+  const [customFieldsTemplateKey, setCustomFieldsTemplateKey] = useState<
+    string | null
+  >(null);
   const [toast, setToast] = useState<ToastMessage | null>(null);
   const [busy, setBusy] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
+  const [excelBusy, setExcelBusy] = useState(false);
+  const [excelTemplate, setExcelTemplate] =
+    useState<LoadedExcelTemplate | null>(null);
   const [apiKeys, setApiKeys] = useState<Record<CloudAIProvider, string>>({
     gemini: '',
     deepseek: '',
@@ -70,6 +144,7 @@ export default function App() {
     title: string;
     message: string;
   } | null>(null);
+  const brandNameLoaded = useRef(false);
   const confirmationResolver = useRef<((confirmed: boolean) => void) | null>(
     null,
   );
@@ -102,6 +177,18 @@ export default function App() {
     void getAIProviderKeys()
       .then(setApiKeys)
       .catch(() => setApiKeys({ gemini: '', deepseek: '' }));
+    void getBrandName()
+      .then((savedBrandName) => {
+        setBrandName(savedBrandName);
+        setProduct((current) => ({
+          ...current,
+          brandName: current.brandName || savedBrandName,
+        }));
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        brandNameLoaded.current = true;
+      });
   }, []);
 
   function updatePricing(next: PricingSettings) {
@@ -215,7 +302,10 @@ export default function App() {
           return;
         }
       }
-      setProduct(result.product);
+      setProduct({
+        ...result.product,
+        brandName: brandName || result.product.brandName,
+      });
       setActiveId(null);
       setHasUnsavedProduct(true);
       showToast(
@@ -299,6 +389,7 @@ export default function App() {
     model: AIModel,
     apiKey: string,
     excludeOptimized: boolean,
+    customFields: ProductDraft['customFields'] = [],
   ) {
     setAiBusy(true);
     let completed = 0;
@@ -313,9 +404,14 @@ export default function App() {
         while (nextIndex < pendingDrafts.length) {
           const draft = pendingDrafts[nextIndex++];
           try {
-            const aiResult = await optimizeDraft(draft, model, apiKey);
+            const aiResult = await optimizeDraft(
+              { ...draft, customFields },
+              model,
+              apiKey,
+            );
             await saveDraft({
               ...draft,
+              customFields,
               aiResult,
               updatedAt: new Date().toISOString(),
             });
@@ -352,14 +448,133 @@ export default function App() {
     }
   }
 
-  function exportJson(data: unknown, name: string) {
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(
-      new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+  function requestAIOptimization(
+    model: AIModel,
+    apiKey: string,
+    excludeOptimized: boolean,
+    customFields: ProductDraft['customFields'] = [],
+  ) {
+    if (!excelTemplate) {
+      showToast('请先导入并解析 Excel 模版，再进行 AI 优化。', 'info');
+      return;
+    }
+    const pendingDrafts = drafts.filter(
+      (draft) => !excludeOptimized || !draft.aiResult,
     );
-    link.download = name;
-    link.click();
-    URL.revokeObjectURL(link.href);
+    if (!pendingDrafts.length) {
+      showToast(
+        '没有待优化的商品；可取消“排除已经 AI 优化的 listing”后重新生成。',
+        'info',
+      );
+      return;
+    }
+    if (getAIProvider(model) && !apiKey.trim()) {
+      showToast('请先填写当前模型的 API Key。', 'info');
+      return;
+    }
+    void optimizeDrafts(model, apiKey, excludeOptimized, customFields);
+  }
+
+  async function chooseExcelTemplate(file: File | null) {
+    if (!file) {
+      setExcelTemplate(null);
+      setCustomFieldsTemplateKey(null);
+      setAiCustomFields([]);
+      return null;
+    }
+    try {
+      const loaded = await loadExcelTemplate(file);
+      setExcelTemplate(loaded);
+      const summary = getTemplateSummary(loaded);
+      const templateKey = `${summary.categoryCode}-${summary.platformCode}-${summary.marketplaceCode}`;
+      setCustomFieldsTemplateKey(templateKey);
+      setAiCustomFields(await getTemplateCustomFields(templateKey));
+      showToast('Excel 模版读取成功，导出时会自动定位首个空行。', 'success');
+      return summary;
+    } catch (error) {
+      setExcelTemplate(null);
+      setCustomFieldsTemplateKey(null);
+      setAiCustomFields([]);
+      showToast(
+        error instanceof Error ? error.message : 'Excel 模版解析失败。',
+        'error',
+      );
+      return null;
+    }
+  }
+
+  function updateAICustomFields(fields: CustomProductField[]) {
+    setAiCustomFields(fields);
+    if (customFieldsTemplateKey) {
+      void saveTemplateCustomFields(customFieldsTemplateKey, fields).catch(() =>
+        showToast('预设字段暂未能保存到本机。', 'error'),
+      );
+    }
+  }
+
+  async function exportTemplate(
+    shippingTemplateField: string,
+    shippingTemplateValue: string,
+  ) {
+    if (excelBusy) {
+      showToast('模版正在导出，请稍候。', 'info');
+      return;
+    }
+    if (!excelTemplate) {
+      showToast('请先导入并解析 Excel 模版。', 'error');
+      return;
+    }
+    if (!drafts.length) {
+      showToast('暂存列表为空，没有可导出的商品。', 'error');
+      return;
+    }
+    const missingAiDraft = drafts.find((draft) => !draft.aiResult);
+    if (missingAiDraft) {
+      showToast(
+        `${missingAiDraft.productName || missingAiDraft.itemCode} 尚无 AI 优化结果，请先完成 AI 优化。`,
+        'error',
+      );
+      return;
+    }
+    const exportDrafts = drafts.map((draft) => ({
+      ...draft,
+      brandName: draft.brandName?.trim() || brandName.trim(),
+    }));
+    const missingBrandDraft = exportDrafts.find((draft) => !draft.brandName);
+    if (missingBrandDraft) {
+      showToast(
+        `${missingBrandDraft.productName || missingBrandDraft.itemCode} 缺少 Brand Name，请打开该商品补充并暂存后重试。`,
+        'error',
+      );
+      return;
+    }
+    setExcelBusy(true);
+    try {
+      const { fillExcelTemplate } = await import('./excel/fillTemplate');
+      const filledWorkbook = await fillExcelTemplate(
+        excelTemplate,
+        exportDrafts,
+        {
+          parentageLevel: 'Parent',
+          parentSku: '',
+          pricing,
+          shippingTemplateField,
+          shippingTemplateValue,
+        },
+      );
+      downloadWorkbook(filledWorkbook);
+      showToast(
+        `已导出 ${drafts.length} 个商品到 ${filledWorkbook.fileName}。`,
+        'success',
+      );
+    } catch (error) {
+      showToast(
+        error instanceof Error ? error.message : 'Excel 模版导出失败。',
+        'error',
+      );
+    } finally {
+      setExcelBusy(false);
+    }
   }
 
   return (
@@ -378,6 +593,18 @@ export default function App() {
         {view === 'capture' ? (
           <ProductForm
             product={product}
+            onProductChange={(nextProduct) => {
+              setProduct(nextProduct);
+              if (nextProduct.brandName !== product.brandName) {
+                setBrandName(nextProduct.brandName);
+                if (brandNameLoaded.current) {
+                  void saveBrandName(nextProduct.brandName).catch(() =>
+                    showToast('Brand Name 暂未能保存到本机。', 'error'),
+                  );
+                }
+              }
+              setHasUnsavedProduct(true);
+            }}
             filters={filters}
             pricing={pricing}
             listingPrice={listingPrice}
@@ -396,20 +623,29 @@ export default function App() {
         ) : (
           <DraftLibrary
             drafts={drafts}
+            customFields={aiCustomFields}
+            onCustomFieldsChange={updateAICustomFields}
             onOpen={(draft) => {
-              setProduct(withoutMetadata(draft));
+              setProduct({
+                ...withoutMetadata(draft),
+                brandName: draft.brandName?.trim() || brandName,
+              });
               setActiveId(draft.id);
               setHasUnsavedProduct(false);
               setToast(null);
               setView('capture');
             }}
             onDelete={(id) => void removeDraft(id)}
-            onExport={() => {
-              exportJson(drafts, 'listing-loom-drafts.json');
-              showToast('草稿数据已导出为 JSON。', 'success');
-            }}
-            onAiOptimize={(model, apiKey, excludeOptimized) =>
-              void optimizeDrafts(model, apiKey, excludeOptimized)
+            onExport={(shippingTemplateField, shippingTemplateValue) =>
+              void exportTemplate(shippingTemplateField, shippingTemplateValue)
+            }
+            onAiOptimize={(model, apiKey, excludeOptimized, customFields) =>
+              requestAIOptimization(
+                model,
+                apiKey,
+                excludeOptimized,
+                customFields,
+              )
             }
             apiKeys={apiKeys}
             onApiKeyChange={(provider, apiKey) => {
@@ -419,9 +655,12 @@ export default function App() {
               );
             }}
             optimizing={aiBusy}
-            onChooseTemplate={(file) =>
-              file && showToast(`已选择 ${file.name}。`, 'info')
+            exporting={excelBusy}
+            onChooseTemplate={chooseExcelTemplate}
+            templateSummary={
+              excelTemplate ? getTemplateSummary(excelTemplate) : null
             }
+            templateFile={excelTemplate?.file ?? null}
           />
         )}
       </main>

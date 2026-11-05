@@ -1,4 +1,5 @@
 export interface ProductFields {
+  brandName: string;
   itemCode: string;
   productName: string;
   originalPrice: string;
@@ -7,13 +8,12 @@ export interface ProductFields {
   available: string;
   fulfillment: string;
   productFeatures: string[];
-  mainColor: string;
-  mainMaterial: string;
-  bedFrameMaterial: string;
-  assembledLength: string;
-  assembledWidth: string;
-  assembledHeight: string;
-  productWeight: string;
+  attributes: Record<string, string>;
+}
+
+export interface CustomProductField {
+  fieldName: string;
+  presetValue: string;
 }
 
 export interface ProductDraft extends ProductFields {
@@ -21,6 +21,7 @@ export interface ProductDraft extends ProductFields {
   createdAt: string;
   updatedAt: string;
   aiResult?: AIListingContent;
+  customFields?: CustomProductField[];
 }
 
 export interface AIListingContent {
@@ -28,6 +29,7 @@ export interface AIListingContent {
   bullets: string[];
   productDescription: string;
   searchKeywords: string[];
+  customFields?: Array<{ fieldName: string; value: string }>;
 }
 
 export interface ProductExtractionResult {
@@ -41,6 +43,7 @@ export interface CaptureFilters {
 }
 
 export const emptyProduct = (): ProductFields => ({
+  brandName: '',
   itemCode: '',
   productName: '',
   originalPrice: '',
@@ -49,16 +52,11 @@ export const emptyProduct = (): ProductFields => ({
   available: '',
   fulfillment: '',
   productFeatures: [],
-  mainColor: '',
-  mainMaterial: '',
-  bedFrameMaterial: '',
-  assembledLength: '',
-  assembledWidth: '',
-  assembledHeight: '',
-  productWeight: '',
+  attributes: {},
 });
 
 export const fieldLabels: Record<keyof ProductFields, string> = {
+  brandName: 'Brand Name',
   itemCode: 'Item Code',
   productName: 'Product Name',
   originalPrice: 'Original Price',
@@ -67,11 +65,5 @@ export const fieldLabels: Record<keyof ProductFields, string> = {
   available: 'Available',
   fulfillment: 'Fulfillment',
   productFeatures: 'Product Features',
-  mainColor: 'Main Color',
-  mainMaterial: 'Main Material',
-  bedFrameMaterial: 'Bed Frame Material',
-  assembledLength: 'Assembled Length (in.)',
-  assembledWidth: 'Assembled Width (in.)',
-  assembledHeight: 'Assembled Height (in.)',
-  productWeight: 'Product Weight (lbs.)',
+  attributes: 'Additional Product Attributes',
 };

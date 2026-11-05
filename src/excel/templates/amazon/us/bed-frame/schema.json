@@ -1,0 +1,342 @@
+{
+  "platform": "amazon",
+  "marketplace": "USA",
+  "category": "BED_FRAME",
+  "worksheet": "Template",
+  "dataStartRowFallback": 8,
+  "startRowDetection": {
+    "column": "A",
+    "searchRows": 500
+  },
+  "fields": [
+    {
+      "key": "sku",
+      "label": "SKU",
+      "column": "A",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "productType",
+      "label": "Product Type",
+      "column": "B",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "listingAction",
+      "label": "Listing Action",
+      "column": "C",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "parentageLevel",
+      "label": "Parentage Level",
+      "column": "D",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "parentSku",
+      "label": "Parent SKU",
+      "column": "E",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "variationThemeName",
+      "label": "Variation Theme Name",
+      "column": "F",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "itemName",
+      "label": "Item Name",
+      "column": "G",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "brandName",
+      "label": "Brand Name",
+      "column": "I",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "productIdType",
+      "label": "Product Id Type",
+      "column": "J",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "modelNumber",
+      "label": "Model Number",
+      "column": "U",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "modelName",
+      "label": "Model Name",
+      "column": "V",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "manufacturer",
+      "label": "Manufacturer",
+      "column": "W",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "productDescription",
+      "label": "Product Description",
+      "column": "AJ",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "bulletPoint1",
+      "label": "Bullet Point 1",
+      "column": "AK",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "bulletPoint2",
+      "label": "Bullet Point 2",
+      "column": "AL",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "bulletPoint3",
+      "label": "Bullet Point 3",
+      "column": "AM",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "bulletPoint4",
+      "label": "Bullet Point 4",
+      "column": "AN",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "bulletPoint5",
+      "label": "Bullet Point 5",
+      "column": "AO",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "genericKeyword",
+      "label": "Generic Keyword",
+      "column": "AP",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "specialFeatures",
+      "label": "Special Features",
+      "column": "AQ",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "material",
+      "label": "Material",
+      "column": "AW",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "fabricType",
+      "label": "Fabric Type",
+      "column": "BB",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "numberOfItems",
+      "label": "Number of Items",
+      "column": "BG",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "color",
+      "label": "Color",
+      "column": "BI",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "partNumber",
+      "label": "Part Number",
+      "column": "BK",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "requiredAssembly",
+      "label": "Required Assembly",
+      "column": "BT",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "finishType",
+      "label": "Finish Type",
+      "column": "BZ",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "includedComponents",
+      "label": "Included Components",
+      "column": "CD",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "isFragile",
+      "label": "Is Fragile",
+      "column": "CO",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "itemHeightFloorToTop",
+      "label": "Item Height Floor To Top",
+      "column": "DB",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "itemHeightUnit",
+      "label": "Item Height Unit of Measure",
+      "column": "DC",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "itemLengthHeadToToe",
+      "label": "Item Length Head to Toe",
+      "column": "DD",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "itemLengthUnit",
+      "label": "Item Length Unit",
+      "column": "DE",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "itemWidthSideToSide",
+      "label": "Item Width Side To Side",
+      "column": "DF",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "itemWidthUnit",
+      "label": "Item Width Unit",
+      "column": "DG",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "setName",
+      "label": "Set Name",
+      "column": "DV",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "itemWeight",
+      "label": "Item Weight",
+      "column": "EB",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "itemWeightUnit",
+      "label": "Item Weight Unit",
+      "column": "EC",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "itemCondition",
+      "label": "Item Condition",
+      "column": "EE",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "listPrice",
+      "label": "List Price",
+      "column": "EG",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "fulfillmentChannelCode",
+      "label": "Fulfillment Channel Code (US)",
+      "column": "FD",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "quantity",
+      "label": "Quantity (US)",
+      "column": "FE",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "yourPrice",
+      "label": "Your Price USD (Sell on Amazon, US)",
+      "column": "FI",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "shippingTemplate",
+      "label": "Shipping Template (US)",
+      "column": "GH",
+      "type": "string",
+      "required": false
+    },
+    {
+      "key": "countryOfOrigin",
+      "label": "Country of Origin",
+      "column": "GY",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "batteriesRequired",
+      "label": "Are batteries required?",
+      "column": "HE",
+      "type": "string",
+      "required": true
+    },
+    {
+      "key": "dangerousGoodsRegulations",
+      "label": "Dangerous Goods Regulations",
+      "column": "IC",
+      "type": "string",
+      "required": true
+    }
+  ]
+}

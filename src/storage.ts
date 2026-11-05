@@ -1,4 +1,4 @@
-import type { ProductDraft } from './types';
+import type { CustomProductField, ProductDraft } from './types';
 import { defaultTheme, isThemeId, type ThemeId } from './theme';
 import type { CloudAIProvider } from './ai';
 
@@ -6,8 +6,11 @@ const STORAGE_KEY = 'listingLoomDrafts';
 const PRICING_KEY = 'listingLoomPricing';
 const THEME_KEY = 'listingLoomTheme';
 const AI_API_KEYS_KEY = 'listingLoomApiKeys';
+const BRAND_NAME_KEY = 'listingLoomBrandName';
+const AI_CUSTOM_FIELDS_KEY = 'listingLoomAICustomFieldsByTemplate';
 let apiKeyWriteQueue: Promise<void> = Promise.resolve();
 let draftWriteQueue: Promise<void> = Promise.resolve();
+let customFieldWriteQueue: Promise<void> = Promise.resolve();
 
 function enqueueDraftWrite(operation: () => Promise<void>): Promise<void> {
   const write = draftWriteQueue.then(operation);
@@ -53,6 +56,40 @@ export async function getTheme(): Promise<ThemeId> {
 
 export async function saveTheme(theme: ThemeId): Promise<void> {
   await chrome.storage.local.set({ [THEME_KEY]: theme });
+}
+
+export async function getBrandName(): Promise<string> {
+  const value = (await chrome.storage.local.get(BRAND_NAME_KEY))[BRAND_NAME_KEY];
+  return typeof value === 'string' ? value : '';
+}
+
+export async function saveBrandName(brandName: string): Promise<void> {
+  await chrome.storage.local.set({ [BRAND_NAME_KEY]: brandName.trim() });
+}
+
+export async function getTemplateCustomFields(
+  templateKey: string,
+): Promise<CustomProductField[]> {
+  const stored = (await chrome.storage.local.get(AI_CUSTOM_FIELDS_KEY))[
+    AI_CUSTOM_FIELDS_KEY
+  ] as Record<string, CustomProductField[]> | undefined;
+  return stored?.[templateKey] ?? [];
+}
+
+export async function saveTemplateCustomFields(
+  templateKey: string,
+  fields: CustomProductField[],
+): Promise<void> {
+  const write = customFieldWriteQueue.then(async () => {
+    const stored = (await chrome.storage.local.get(AI_CUSTOM_FIELDS_KEY))[
+      AI_CUSTOM_FIELDS_KEY
+    ] as Record<string, CustomProductField[]> | undefined;
+    await chrome.storage.local.set({
+      [AI_CUSTOM_FIELDS_KEY]: { ...stored, [templateKey]: fields },
+    });
+  });
+  customFieldWriteQueue = write.catch(() => undefined);
+  return write;
 }
 
 export interface PricingSettings {

@@ -50,5 +50,5 @@ export async function optimizeWithDeepSeek(
   };
   const text = data.choices?.[0]?.message?.content?.trim();
   if (!text) throw new Error('DeepSeek 没有返回可用的文案。');
-  return parseListing(text);
+  return parseListing(text, draft.customFields);
 }

@@ -6,6 +6,7 @@ import { DisclosureIcon } from './icons';
 
 interface ProductFormProps {
   product: ProductFields;
+  onProductChange: (product: ProductFields) => void;
   filters: CaptureFilters;
   pricing: PricingSettings;
   listingPrice: string;
@@ -26,13 +27,7 @@ const fieldOrder: Array<keyof ProductFields> = [
   'available',
   'fulfillment',
   'productFeatures',
-  'mainColor',
-  'mainMaterial',
-  'bedFrameMaterial',
-  'assembledLength',
-  'assembledWidth',
-  'assembledHeight',
-  'productWeight',
+  'attributes',
 ];
 
 const buttonBase =
@@ -59,6 +54,7 @@ function ReadOnlyField({ label, value }: { label: string; value: string }) {
 
 export function ProductForm({
   product,
+  onProductChange,
   filters,
   pricing,
   listingPrice,
@@ -83,6 +79,14 @@ export function ProductForm({
           </h1>
         </div>
       </div>
+      <label className="mb-4 block text-[10px] font-semibold text-[var(--text-muted)]">
+        Brand Name
+        <input
+          value={product.brandName ?? ''}
+          onChange={(event) => onProductChange({ ...product, brandName: event.target.value })}
+          className="mt-1.5 w-full rounded-md border border-[var(--border)] bg-[var(--surface)] px-2.5 py-2 text-xs font-normal text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
+        />
+      </label>
       <div className="mb-3.5">
         <button
           type="button"
@@ -220,7 +224,25 @@ export function ProductForm({
       </div>
       <dl className="m-0 rounded-[10px] border border-[var(--border)] bg-[var(--surface)] px-3">
         {fieldOrder.map((key) =>
-          key === 'productFeatures' ? (
+          key === 'attributes' ? (
+            <div key={key} className="border-b border-[var(--border)] py-3">
+              <dt className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">
+                {fieldLabels.attributes}
+              </dt>
+              {Object.entries(product.attributes ?? {}).length ? (
+                <dl className="m-0 grid grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)] gap-x-3 gap-y-2 text-[11px]">
+                  {Object.entries(product.attributes).map(([name, value]) => (
+                    <div key={name} className="contents">
+                      <dt className="text-[var(--text-muted)]">{name}</dt>
+                      <dd className="m-0 break-words text-[var(--text-primary)]">{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : (
+                <dd className="m-0 text-[12px] text-[var(--text-muted)]">未采集到</dd>
+              )}
+            </div>
+          ) : key === 'productFeatures' ? (
             <div key={key} className="border-b border-[var(--border)] py-3">
               <dt className="mb-1 text-[10px] font-semibold text-[var(--text-muted)]">
                 {fieldLabels.productFeatures}
@@ -241,7 +263,10 @@ export function ProductForm({
             </div>
           ) : (
             <div key={key}>
-              <ReadOnlyField label={fieldLabels[key]} value={product[key]} />
+              <ReadOnlyField
+                label={fieldLabels[key]}
+                value={typeof product[key] === 'string' ? product[key] : ''}
+              />
               {key === 'salePrice' && (
                 <ReadOnlyField label="Listing Price" value={listingPrice} />
               )}
